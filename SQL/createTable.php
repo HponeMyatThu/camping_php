@@ -1,6 +1,6 @@
 <?php
-$DBConnectionFilePath = "../DB/DBConnection.php";
-$CreateTableQueryFilePath = "./createTableQuery.php";
+$DBConnectionFilePath = "./DB/DBConnection.php";
+$CreateTableQueryFilePath = "createTableQuery.php";
 
 $isEmptyFilePath = file_exists($DBConnectionFilePath)
     || file_exists($CreateTableQueryFilePath);
