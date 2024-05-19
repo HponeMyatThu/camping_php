@@ -32,8 +32,7 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
     if ($connection->connect_error) {
         echo ("s<strong>Path: /DB/DBConnection</strong>: Error connecting to database: " . $connection->connect_error);
     } else {
-        echo
-        "<p><strong>Path: /DB/DBConnection</strong>: Connected to database.</p>";
+        // echo "<p><strong>Path: /DB/DBConnection</strong>: Connected to database.</p>";
     }
 } else {
     if ($env_file_path === false) {
