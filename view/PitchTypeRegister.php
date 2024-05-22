@@ -1,16 +1,19 @@
 <?php
-$PitchTypeRegisterFilePath = "../php/_pitchTypeRegister.php";
+$CommonFilePath = "../php/_common.php";
 
-if (file_exists($PitchTypeRegisterFilePath)) {
-    include($PitchTypeRegisterFilePath);
+if (file_exists($CommonFilePath)) {
+    include($CommonFilePath);
 } else {
-    echo "<p class='error'>Error: Unable to include file <strong>$PitchTypeRegisterFilePath</strong> - File does not exist.</p>";
+    echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
+
+registerPitchType($connection)
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +25,7 @@ if (file_exists($PitchTypeRegisterFilePath)) {
             padding: 0;
             background-color: #f4f4f9;
         }
+
         .container {
             max-width: 500px;
             margin: 50px auto;
@@ -30,16 +34,20 @@ if (file_exists($PitchTypeRegisterFilePath)) {
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             text-align: center;
             margin-bottom: 30px;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         .form-group label {
             font-weight: bold;
         }
+
         .form-group input[type="text"] {
             width: 100%;
             padding: 10px;
@@ -47,6 +55,7 @@ if (file_exists($PitchTypeRegisterFilePath)) {
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         .form-group input[type="submit"] {
             background-color: #4caf50;
             color: white;
@@ -59,15 +68,17 @@ if (file_exists($PitchTypeRegisterFilePath)) {
             border-radius: 4px;
             cursor: pointer;
         }
+
         .form-group input[type="submit"]:hover {
             background-color: #45a049;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Register Pitch Type</h1>
-        <form action="../php/_pitchTypeRegister.php" method="POST">
+        <form action="PitchTypeRegister.php" method="POST">
             <div class="form-group">
                 <label for="pitch_type_name">Pitch Type Name:</label>
                 <input type="text" id="pitch_type_name" name="pitch_type_name" required>
@@ -78,4 +89,5 @@ if (file_exists($PitchTypeRegisterFilePath)) {
         </form>
     </div>
 </body>
+
 </html>

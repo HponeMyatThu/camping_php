@@ -1,5 +1,5 @@
 <?php
 session_start();
 session_destroy();
-header("Location: ../view/Login.php");
+header("Location: ../view/AdminLogin.php");
 exit();

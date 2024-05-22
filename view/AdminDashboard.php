@@ -1,9 +1,10 @@
 <?php
-session_start();
-
-if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
-    header("Location: ../view/Login.php");
-    exit();
+$CommonFilePath = "../php/_common.php";
+if (file_exists($CommonFilePath)) {
+    include($CommonFilePath);
+} else {
+    echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
+    return;
 }
 ?>
 
@@ -42,7 +43,8 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
         .sidebar a {
             width: 100%;
             padding: 15px;
-            text-align: center;
+            text-align: start;
+            margin-left: 30px;
             text-decoration: none;
             color: white;
             transition: background-color 0.3s;
@@ -80,23 +82,10 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
 </head>
 
 <body>
-    <div class="sidebar">
-        <h2>Navigation</h2>
-        <a href="pitch.html">Pitch</a>
-        <a href="PitchTypeRegister.php">Pitch Type</a>
-        <a href="../php/_adminLogout.php" class="logout">Logout</a>
-    </div>
+    <?php adminSideBar() ?>
     <div class="main-content">
         <div class="user-info">
-            <?php
-            if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
-                $id = $_SESSION['id'];
-                $name = $_SESSION['username'];
-                echo "Logged in as: " . htmlspecialchars($name) . " (" . htmlspecialchars($id) . ")";
-            } else {
-                echo "Not logged in.";
-            }
-            ?>
+            <?php showLoginUser() ?>
         </div>
         <h1>Dashboard</h1>
         <p>Welcome to the dashboard. Use the links on the left to navigate.</p>

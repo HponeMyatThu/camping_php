@@ -1,12 +1,13 @@
 <?php
-$AdminRegisterFilePath = "../php/_adminRegister.php";
+$CommonFilePath = "../php/_common.php";
 
-if (file_exists($AdminRegisterFilePath)) {
-    include($AdminRegisterFilePath);
+if (file_exists($CommonFilePath)) {
+    include($CommonFilePath);
 } else {
-    echo "<p class='error'>Error: Unable to include file <strong>$AdminRegisterFilePath</strong> - File does not exist.</p>";
+    echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
+registerAdmin($connection);
 ?>
 
 <!DOCTYPE html>

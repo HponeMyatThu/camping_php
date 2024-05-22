@@ -1,3 +1,13 @@
+<?php
+$CommonFilePath = "../php/_common.php";
+if (file_exists($CommonFilePath)) {
+    include($CommonFilePath);
+} else {
+    echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
+    return;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,14 +38,18 @@
         .sidebar h2 {
             margin: 0;
             margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #eaeaea;
         }
 
         .sidebar a {
             width: 100%;
             padding: 15px;
-            text-align: center;
+            text-align: start;
+            margin-left: 30px;
             text-decoration: none;
             color: white;
+            font-size: 1.1em;
             transition: background-color 0.3s;
         }
 
@@ -50,7 +64,7 @@
 
         .main-content {
             flex-grow: 1;
-            padding: 20px;
+            padding: 40px;
             background-color: #ffffff;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
         }
@@ -66,48 +80,58 @@
 
         .main-content h1 {
             color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <div class="sidebar">
-        <h2>Navigation</h2>
-        <a href="pitch.html">Pitch</a>
-        <a href="pitch-type.html">Pitch Type</a>
-        <a href="logout.php" class="logout">Logout</a>
-    </div>
+    <?php adminSideBar() ?>
     <div class="main-content">
         <div class="user-info">
             <?php
-            session_start();
-            if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
-                $id = $_SESSION['id'];
-                $name = $_SESSION['username'];
-                echo "Logged in as: " . htmlspecialchars($name) . " (" . htmlspecialchars($id) . ")";
-            } else {
-                echo "Not logged in.";
-            }
+            showLoginUser()
             ?>
         </div>
         <h1>Pitch Types</h1>
         <?php
-        // Assuming you have a function to fetch pitch types from your database
-        // $pitchTypes = getPitchTypes(); // You need to implement this function
-
-        if ($pitchTypes && count($pitchTypes) > 0) {
-            echo "<table>";
-            echo "<tr><th>ID</th><th>Pitch Type Name</th></tr>";
-            foreach ($pitchTypes as $pitchType) {
-                echo "<tr>";
-                echo "<td>" . htmlspecialchars($pitchType['id']) . "</td>";
-                echo "<td>" . htmlspecialchars($pitchType['pitch_type_name']) . "</td>";
-                echo "</tr>";
-            }
-            echo "</table>";
-        } else {
-            echo "<p>No pitch types found.</p>";
-        }
+        displayPitchTypes($connection);
         ?>
     </div>
 </body>
