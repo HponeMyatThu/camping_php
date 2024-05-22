@@ -7,7 +7,7 @@ if (file_exists($CommonFilePath)) {
     echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
-loginAdmin($connection);
+loginAdmin();
 ?>
 
 <!DOCTYPE html>

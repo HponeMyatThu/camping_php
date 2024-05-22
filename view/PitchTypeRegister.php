@@ -8,7 +8,7 @@ if (file_exists($CommonFilePath)) {
     return;
 }
 
-registerPitchType($connection)
+registerPitchType()
 ?>
 
 <!DOCTYPE html>

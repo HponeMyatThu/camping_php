@@ -1,24 +1,40 @@
 <?php
-$DBConnectionFilePath = "../DB/DBConnection.php";
+function DBConnection()
+{
+    $DBConnectionFilePath = "../DB/DBConnection.php";
 
-if (file_exists($DBConnectionFilePath)) {
-    include($DBConnectionFilePath);
-} else {
-    echo "<p class='error'>Error: Unable to include file <strong>$DBConnectionFilePath</strong> - File does not exist.</p>";
-    return;
+    if (file_exists($DBConnectionFilePath)) {
+        $connection = include($DBConnectionFilePath);
+        return $connection;
+    } else {
+        echo "
+        <script>
+            console.log('Error: Unable to include file $DBConnectionFilePath - File does not exist.');
+        </script>
+        ";
+        return null;
+    }
 }
 
-function displayPitchTypes($connection)
+function displayPitchTypes()
 {
+    $connection = DBConnection();
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
     $pitchTypes = [];
     $sql = "SELECT id, pitch_type_name FROM pitch_type";
     $result = $connection->query($sql);
 
-    if ($result->num_rows > 0) {
+    if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $pitchTypes[] = $row;
         }
     }
+
     if (count($pitchTypes) > 0) {
         echo "<table>";
         echo "<tr><th>ID</th><th>Pitch Type Name</th></tr>";
@@ -50,18 +66,34 @@ function adminSideBar()
 {
     echo '
     <div class="sidebar">
-    <h2><a href="AdminDashboard.php">Navigation</a></h2>
+        <h2><a href="AdminDashboard.php">Navigation</a></h2>
         <a href="pitch.html">Pitch</a>
         <a href="PitchTypeView.php">Pitch Type</a>
         <a href="">Pitch Register</a>
         <a href="PitchTypeRegister.php">Pitch Type Register</a>
-        <a href="../php/_adminLogout.php" class="logout">Logout</a>
+        <form method="POST" style="display:inline;">
+            <button type="submit" name="logout" class="logout">Logout</button>
+        </form>
     </div>
     ';
 }
 
-function registerPitchType($connection)
+if (isset($_POST['logout'])) {
+    session_start();
+    session_destroy();
+    header("Location: ../view/AdminLogin.php");
+    exit();
+}
+
+function registerPitchType()
 {
+    $connection = DBConnection();
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pitchTypeName = $_POST['pitch_type_name'];
 
@@ -86,8 +118,15 @@ function registerPitchType($connection)
     }
 }
 
-function registerAdmin($connection)
+function registerAdmin()
 {
+    $connection = DBConnection();
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'];
         $password = $_POST['password'];
@@ -111,15 +150,22 @@ function registerAdmin($connection)
         if ($result === false) {
             echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
         } else {
-            echo "<p class='success'>User added successfully.</p><a href='../view/Login.php'>Go to Login Page</a>";
+            echo "<p class='success'>User added successfully.</p><a href='../view/AdminLogin.php'>Go to Login Page</a>";
         }
 
         $stmt->close();
     }
 }
 
-function loginAdmin($connection)
+function loginAdmin()
 {
+    $connection = DBConnection();
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = $_POST['username'];
         $password = $_POST['password'];
@@ -157,5 +203,14 @@ function loginAdmin($connection)
         }
 
         $stmt->close();
+    }
+}
+
+function mainMethod()
+{
+    session_start();
+    if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
+        header("Location: ./view/AdminLogin.php");
+        exit();
     }
 }

@@ -131,7 +131,7 @@ if (file_exists($CommonFilePath)) {
         </div>
         <h1>Pitch Types</h1>
         <?php
-        displayPitchTypes($connection);
+        displayPitchTypes();
         ?>
     </div>
 </body>

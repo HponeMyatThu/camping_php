@@ -1,12 +1,14 @@
 <?php
-$IndexFilePath = "./php/_index.php";
+$CommonFilePath = "./php/_common.php";
 
-if (file_exists($IndexFilePath)) {
-    include($IndexFilePath);
+if (file_exists($CommonFilePath)) {
+    include($CommonFilePath);
 } else {
-    echo "<p class='error'>Error: Unable to include file <strong>$IndexFilePath</strong> - File does not exist.</p>";
+    echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
+
+mainMethod();
 ?>
 
 <!DOCTYPE html>

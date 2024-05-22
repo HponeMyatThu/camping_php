@@ -7,7 +7,7 @@ if (file_exists($CommonFilePath)) {
     echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
-registerAdmin($connection);
+registerAdmin();
 ?>
 
 <!DOCTYPE html>
@@ -89,7 +89,7 @@ registerAdmin($connection);
 <body>
     <div class="container">
         <h1>Register</h1>
-        <form action="../php/_adminRegister.php" method="post">
+        <form action="AdminRegister.php" method="post">
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" name="name" required>

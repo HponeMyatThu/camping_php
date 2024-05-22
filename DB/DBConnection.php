@@ -13,10 +13,10 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
             $value = trim($value);
             $value = trim($value, '"');
 
-            $key === 'DB_HOST' && $servername = $value;
-            $key === 'DB_USERNAME' && $username = $value;
-            $key === 'DB_PASSWORD' && $password = $value;
-            $key === 'DB_DATABASE' && $database = $value;
+            if ($key === 'DB_HOST') $servername = $value;
+            if ($key === 'DB_USERNAME') $username = $value;
+            if ($key === 'DB_PASSWORD') $password = $value;
+            if ($key === 'DB_DATABASE') $database = $value;
         }
     }
 
@@ -24,7 +24,7 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
 
     if ($isEmpty) {
         echo "<script>console.log('Path: /DB/DBConnection: fetch value from .env file failed.');</script>";
-        return;
+        return null;
     }
 
     $connection = new mysqli($servername, $username, $password, $database);
@@ -32,8 +32,10 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
     if ($connection->connect_error) {
         $errorMessage = "<strong>Path: /DB/DBConnection</strong>: Error connecting to database: " . $connection->connect_error;
         echo "<script>console.log(" . json_encode($errorMessage) . ");</script>";
+        return null;
     } else {
         echo "<script>console.log('Path: /DB/DBConnection: Connected to database.');</script>";
+        return $connection;
     }
 } else {
     if ($env_file_path === false) {
@@ -41,4 +43,5 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
     } else {
         echo "<script>console.log('Path: /DB/DBConnection: File does not exist.');</script>";
     }
+    return null;
 }
