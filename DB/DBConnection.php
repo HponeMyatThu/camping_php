@@ -23,21 +23,22 @@ if ($env_file_path !== false && file_exists($env_file_path)) {
     $isEmpty = empty($servername) || empty($username) || empty($password) || empty($database);
 
     if ($isEmpty) {
-        echo '<p><strong>Path: /DB/DBConnection</strong>: fetch value from .env file failed.</p>';
+        echo "<script>console.log('Path: /DB/DBConnection: fetch value from .env file failed.');</script>";
         return;
     }
 
     $connection = new mysqli($servername, $username, $password, $database);
 
     if ($connection->connect_error) {
-        echo ("s<strong>Path: /DB/DBConnection</strong>: Error connecting to database: " . $connection->connect_error);
+        $errorMessage = "<strong>Path: /DB/DBConnection</strong>: Error connecting to database: " . $connection->connect_error;
+        echo "<script>console.log(" . json_encode($errorMessage) . ");</script>";
     } else {
-        // echo "<p><strong>Path: /DB/DBConnection</strong>: Connected to database.</p>";
+        echo "<script>console.log('Path: /DB/DBConnection: Connected to database.');</script>";
     }
 } else {
     if ($env_file_path === false) {
-        echo "<p><strong>Path: /DB/DBConnection</strong>: Invalid path.</p>";
+        echo "<script>console.log('Path: /DB/DBConnection: Invalid path.');</script>";
     } else {
-        echo "<p><strong>Path: /DB/DBConnection</strong>: File does not exist.</p>";
+        echo "<script>console.log('Path: /DB/DBConnection: File does not exist.');</script>";
     }
 }

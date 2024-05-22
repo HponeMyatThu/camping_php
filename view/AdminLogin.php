@@ -1,12 +1,4 @@
 <?php
-// $LoginFilePath = "../php/_adminLogin.php";
-
-// if (file_exists($LoginFilePath)) {
-//     include($LoginFilePath);
-// } else {
-//     echo "<p class='error'>Error: Unable to include file <strong>$LoginFilePath</strong> - File does not exist.</p>";
-//     return;
-// }
 $CommonFilePath = "../php/_common.php";
 
 if (file_exists($CommonFilePath)) {
