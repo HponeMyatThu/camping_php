@@ -126,7 +126,7 @@ if (file_exists($CommonFilePath)) {
     <div class="main-content">
         <div class="user-info">
             <?php
-            showLoginUser()
+            showLoginUser("admin")
             ?>
         </div>
         <h1>Pitch Types</h1>

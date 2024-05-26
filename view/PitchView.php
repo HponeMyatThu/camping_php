@@ -79,7 +79,10 @@ if (file_exists($CommonFilePath)) {
 
 <body>
     <h1>Pitch View</h1>
-    <?php displayPitch() ?>
+    <?php showLoginUser("admin")?>
+    <?php adminSideBar() ?>
+    <br>
+    <?php displayPitch("admin") ?>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 <?php
-$CommonFilePath = "../php/_common.php";
+$CommonFilePath = "../../php/_common.php";
 
 if (file_exists($CommonFilePath)) {
     include($CommonFilePath);
@@ -7,7 +7,10 @@ if (file_exists($CommonFilePath)) {
     echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
-registerAdmin();
+
+if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    customerRegister();
+}
 ?>
 
 <!DOCTYPE html>
@@ -89,7 +92,7 @@ registerAdmin();
 <body>
     <div class="container">
         <h1>Register</h1>
-        <form action="AdminRegister.php" method="post">
+        <form action="Register.php" method="post">
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" name="name" required>
@@ -123,7 +126,7 @@ registerAdmin();
             </div>
         </form>
         <div class="login-link">
-            <p>Already have an account? <a href="AdminLogin.php">Login here</a></p>
+            <p>Already have an account? <a href="Login.php">Login here</a></p>
         </div>
     </div>
 </body>

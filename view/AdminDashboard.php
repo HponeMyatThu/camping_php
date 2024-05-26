@@ -85,7 +85,7 @@ if (file_exists($CommonFilePath)) {
     <?php adminSideBar() ?>
     <div class="main-content">
         <div class="user-info">
-            <?php showLoginUser() ?>
+            <?php showLoginUser("admin") ?>
         </div>
         <h1>Dashboard</h1>
         <p>Welcome to the dashboard. Use the links on the left to navigate.</p>

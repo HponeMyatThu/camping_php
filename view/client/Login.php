@@ -1,5 +1,5 @@
 <?php
-$CommonFilePath = "../php/_common.php";
+$CommonFilePath = "../../php/_common.php";
 
 if (file_exists($CommonFilePath)) {
     include($CommonFilePath);
@@ -7,7 +7,10 @@ if (file_exists($CommonFilePath)) {
     echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
-registerAdmin();
+
+if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    customerLogin();
+}
 ?>
 
 <!DOCTYPE html>
@@ -16,7 +19,7 @@ registerAdmin();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,9 +51,7 @@ registerAdmin();
             margin-bottom: 5px;
         }
 
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group input {
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
@@ -70,62 +71,58 @@ registerAdmin();
             background-color: #0056b3;
         }
 
-        .login-link {
+        .register-link {
             margin-top: 15px;
             text-align: center;
         }
 
-        .login-link a {
+        .register-link a {
             color: #007BFF;
             text-decoration: none;
         }
 
-        .login-link a:hover {
+        .register-link a:hover {
             text-decoration: underline;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-top: 10px;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Register</h1>
-        <form action="AdminRegister.php" method="post">
+        <h1>Login</h1>
+        <form action="Login.php" method="post">
             <div class="form-group">
-                <label>Name:</label>
-                <input type="text" name="name" required>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
             </div>
             <div class="form-group">
-                <label>Password:</label>
-                <input type="password" name="password" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <input type="checkbox" id="showPassword"> Show Password
             </div>
             <div class="form-group">
-                <label>Email:</label>
-                <input type="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label>Phone:</label>
-                <input type="tel" name="phone" required>
-            </div>
-            <div class="form-group">
-                <label>Address:</label>
-                <textarea name="address" required></textarea>
-            </div>
-            <div class="form-group">
-                <label>Status:</label>
-                <select name="status" required>
-                    <option value="pending">PENDING</option>
-                    <option value="active">ACTIVE</option>
-                    <option value="unactive">UNACTIVE</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <button type="submit">Register</button>
+                <button type="submit">Login</button>
             </div>
         </form>
-        <div class="login-link">
-            <p>Already have an account? <a href="AdminLogin.php">Login here</a></p>
+        <div class="register-link">
+            <p>Don't have an account? <a href="Register.php">Register here</a></p>
         </div>
     </div>
+    <script>
+        document.getElementById('showPassword').addEventListener('change', function() {
+            var passwordInput = document.getElementById('password');
+            if (this.checked) {
+                passwordInput.type = 'text';
+            } else {
+                passwordInput.type = 'password';
+            }
+        });
+    </script>
 </body>
 
 </html>

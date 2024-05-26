@@ -1,7 +1,11 @@
 <?php
-function DBConnection()
+function DBConnection($parameter)
 {
-    $DBConnectionFilePath = "../DB/DBConnection.php";
+    if ($parameter === "client") {
+        $DBConnectionFilePath = "../../DB/DBConnection.php";
+    } else if ($parameter === "admin") {
+        $DBConnectionFilePath = "../DB/DBConnection.php";
+    }
 
     if (file_exists($DBConnectionFilePath)) {
         $connection = include($DBConnectionFilePath);
@@ -16,9 +20,9 @@ function DBConnection()
     }
 }
 
-function getPitchType()
+function getPitchType($parameter)
 {
-    $connection = DBConnection();
+    $connection = DBConnection($parameter);
 
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -40,7 +44,7 @@ function getPitchType()
 
 function displayPitchTypes()
 {
-    $pitchTypes = getPitchType();
+    $pitchTypes = getPitchType("admin");
 
     if (count($pitchTypes) > 0) {
         echo "<table>";
@@ -76,7 +80,7 @@ if (isset($_POST['PitchTypeDelete'])) {
     $id = $_POST['id'];
     echo "<script>console.log(\"pitch-type-delete : $id\")</script>";
     if ($id > 0) {
-        $connection = DBConnection();
+        $connection = DBConnection("admin");
         if ($connection === null) {
             echo "<p class='error'>Error: Database connection could not be established.</p>";
             return;
@@ -99,7 +103,7 @@ if (isset($_POST['PitchTypeDelete'])) {
 
 function getEditPitchType($id)
 {
-    $connection = DBConnection();
+    $connection = DBConnection("admin");
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
         return;
@@ -139,7 +143,7 @@ if (isset($_POST['postEditPitchType'])) {
     echo "<script>console.log(\"postEditPitchType : $id, $pitchTypeName\")</script>";
 
     if ($id > 0 && !empty($pitchTypeName)) {
-        $connection = DBConnection();
+        $connection = DBConnection("admin");
 
         if ($connection === null) {
             echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -164,13 +168,24 @@ if (isset($_POST['postEditPitchType'])) {
     }
 }
 
-function showLoginUser()
+function showLoginUser($parameter)
 {
     session_start();
-    if (isset($_SESSION['id']) && isset($_SESSION['username'])) {
-        $id = $_SESSION['id'];
-        $name = $_SESSION['username'];
-        echo "Logged in as: " . htmlspecialchars($name) . " (" . htmlspecialchars($id) . ")";
+    if (isset($_SESSION['id'])) {
+        if ($parameter === "admin" && isset($_SESSION['admin_username'])) {
+            $id = $_SESSION['id'];
+            $name = $_SESSION['admin_username'];
+            $role = $_SESSION['role'];
+            echo "Logged in as: " . "[" . htmlspecialchars($role) . "]" .  htmlspecialchars($name) . " (" . htmlspecialchars($id) . ")";
+        } else if ($parameter === "user" && isset($_SESSION['client_username'])) {
+            $id = $_SESSION['id'];
+            $name = $_SESSION['client_username'];
+            $role = $_SESSION['role'];
+            echo "Logged in as: " . "[" . htmlspecialchars($role) . "]" .  htmlspecialchars($name) . " (" . htmlspecialchars($id) . ")";
+        } else {
+            echo "<p class='error'>Error: You are not access to view this.</p>";
+            echo "<a href=\"../view/AdminLogin.php\">Login as Admin</a>";
+        }
     } else {
         echo "Not logged in.";
     }
@@ -201,7 +216,7 @@ if (isset($_POST['logout'])) {
 
 function registerPitchType()
 {
-    $connection = DBConnection();
+    $connection = DBConnection("admin");
 
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -234,7 +249,7 @@ function registerPitchType()
 
 function registerAdmin()
 {
-    $connection = DBConnection();
+    $connection = DBConnection("admin");
 
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -273,7 +288,7 @@ function registerAdmin()
 
 function loginAdmin()
 {
-    $connection = DBConnection();
+    $connection = DBConnection("admin");
 
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -304,7 +319,8 @@ function loginAdmin()
 
             if (password_verify($password, $user['password'])) {
                 session_start();
-                $_SESSION['username'] = $username;
+                $_SESSION['admin_username'] = $username;
+                $_SESSION['role'] = 'admin';
                 $_SESSION['id'] = $user['id'];
 
                 header("Location: ../view/AdminDashboard.php");
@@ -320,18 +336,26 @@ function loginAdmin()
     }
 }
 
-function mainMethod()
+function adminMainMethod()
 {
     session_start();
     if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
         header("Location: ./view/AdminLogin.php");
         exit();
     }
+    if (isset($_SESSION['username']) && isset($_SESSION['id'])) {
+        header("Location: ./view/AdminDashboard.php");
+        exit();
+    }
 }
 
 function displayPitchTypeInPitchRegister()
 {
-    $pitchTypes = getPitchType();
+    $pitchTypes = getPitchType("admin");
+
+    //log the pitch type data
+    $pitchTypesJSON = json_encode($pitchTypes);
+    echo "<script>console.log('Pitch Type Data:', $pitchTypesJSON);</script>";
 
     echo "<div class=\"form-group\">" .
         "<label for=\"pitch_type_id\">Pitch Type:</label>" .
@@ -381,7 +405,7 @@ function registerPitch()
         $photo2_path = $photo2_upload['path'];
         $photo3_path = $photo3_upload['path'];
 
-        $connection = DBConnection();
+        $connection = DBConnection("admin");
         if ($connection === null) {
             echo "<p class='error'>Error: Database connection could not be established.</p>";
             return;
@@ -433,9 +457,9 @@ function uploadFile($fileInput, $uploadDirectory)
     }
 }
 
-function displayPitch()
+function getPitchData($parameter)
 {
-    $connection = DBConnection();
+    $connection = DBConnection($parameter);
 
     if ($connection === null) {
         echo "<p class='error'>Error: Database connection could not be established.</p>";
@@ -462,40 +486,286 @@ function displayPitch()
         $pitchData[] = $row;
     }
 
+    $stmt->close();
+    $connection->close();
+
+    return $pitchData;
+}
+
+function displayPitch($parameter)
+{
+    $pitchData = getPitchData($parameter);
+
+    //log the pitch data
     $pitchDataJSON = json_encode($pitchData);
     echo "<script>console.log('Pitch Data:', $pitchDataJSON);</script>";
 
     if (count($pitchData) > 0) {
         echo "<table>";
-        echo "<tr><th>ID</th><th>Pitch Name</th><th>Map</th><th>Address</th><th>Photo 1</th><th>Photo 2</th><th>Photo 3</th><th>Fees</th><th>Local Attraction</th><th>Pitch Type</th><th>Edit</th><th>Delete</th></tr>";
+        echo "<tr><th>ID</th><th>Pitch Name</th><th>Map</th><th>Address</th><th>Photo 1</th><th>Photo 2</th><th>Photo 3</th><th>Fees</th><th>Local Attraction</th><th>Pitch Type</th>";
+        if ($_SESSION['role'] === 'admin') {
+            echo "<th>Edit</th><th>Delete</th>";
+        }
+        echo "</tr>";
         foreach ($pitchData as $pitch) {
             echo "<tr>";
             echo "<td>" . htmlspecialchars($pitch['id']) . "</td>";
             echo "<td>" . htmlspecialchars($pitch['pitch_name']) . "</td>";
             echo "<td>" . htmlspecialchars($pitch['map']) . "</td>";
             echo "<td>" . htmlspecialchars($pitch['address']) . "</td>";
-            echo "<td><img src='" . htmlspecialchars($pitch['photo1']) . "' alt='Photo 1'></td>";
-            echo "<td><img src='" . htmlspecialchars($pitch['photo2']) . "' alt='Photo 2'></td>";
-            echo "<td><img src='" . htmlspecialchars($pitch['photo3']) . "' alt='Photo 3'></td>";
+            echo "<td><img src='" . ($parameter === "client" ? "../" : "") . htmlspecialchars($pitch['photo1']) . "' alt='Photo 1'></td>";
+            echo "<td><img src='" . ($parameter === "client" ? "../" : "") . htmlspecialchars($pitch['photo2']) . "' alt='Photo 2'></td>";
+            echo "<td><img src='" . ($parameter === "client" ? "../" : "") . htmlspecialchars($pitch['photo3']) . "' alt='Photo 3'></td>";
             echo "<td>" . htmlspecialchars($pitch['fees']) . "</td>";
             echo "<td>" . htmlspecialchars($pitch['localAttraction']) . "</td>";
-            echo "<td>" . htmlspecialchars($pitch['pitch_type_id']) . "</td>";
-            echo "<td><form method='POST' style='display:inline;'>" .
-                "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
-                "<button type='submit' name='PitchEdit' class='PitchEdit'>Edit</button>" .
-                "</form></td>";
-            echo "<td><form method='POST' style='display:inline;'>" .
-                "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
-                "<button type='submit' name='PitchDelete' class='PitchDelete'>Delete</button>" .
-                "</form></td>";
-            echo "</tr>";
+            echo "<td>" . getPitchTypeById($pitch['pitch_type_id'], $parameter) . "</td>";
+            if ($_SESSION['role'] === 'admin') {
+                echo "<td><form method='POST' style='display:inline;'>" .
+                    "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
+                    "<button type='submit' name='PitchEdit' class='PitchEdit'>Edit</button>" .
+                    "</form></td>";
+                echo "<td><form method='POST' style='display:inline;'>" .
+                    "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
+                    "<button type='submit' name='PitchDelete' class='PitchDelete'>Delete</button>" .
+                    "</form></td>";
+                echo "</tr>";
+            }
         }
         echo "</table>";
     } else {
         echo "<p>No pitches found.</p>";
     }
-
-    $stmt->close();
-    $connection->close();
 }
 
+function getPitchTypeById($id, $parameter)
+{
+
+    $pitchTypes = getPitchType($parameter);
+
+    foreach ($pitchTypes as $pitchType) {
+        if ($pitchType['id'] == $id) {
+            return $pitchType['pitch_type_name'];
+        }
+    }
+
+    return null;
+}
+
+//need to write edit pitch
+if (isset($_POST['PitchEdit'])) {
+    $id = $_POST['id'];
+    echo "<script>console.log(\"pitch-edit : $id\")</script>";
+}
+
+if (isset($_POST['PitchDelete'])) {
+    $id = $_POST['id'];
+
+    echo "<script>console.log(\" pitch-delete : $id\")</script>";
+    if ($id > 0) {
+        $connection = DBConnection("admin");
+        if ($connection === null) {
+            echo "<p class='error'>Error: Database connection could not be established.</p>";
+            return;
+        }
+
+        $stmt = $connection->prepare("DELETE FROM pitch WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        if ($stmt->execute()) {
+            echo "<p class='success'>Pitch deleted successfully.</p>";
+            echo "<a href=\"../view/PitchView.php\">Go to Pitch page.</a>";
+            exit();
+        } else {
+            echo "<p class='error'>Error: Could not delete pitch type.</p>";
+        }
+
+        $stmt->close();
+        $connection->close();
+    }
+}
+
+function customerMainMethod()
+{
+    session_start();
+    if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
+        header("Location: ./view/client/Login.php");
+        exit();
+    }
+    if (isset($_SESSION['username']) && isset($_SESSION['id'])) {
+        header("Location: ./view/client/Home.php");
+        exit();
+    }
+}
+
+function customerLogin()
+{
+    $connection = DBConnection("client");
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    $query = "SELECT id, password FROM user WHERE name = ?";
+    $stmt = $connection->prepare($query);
+    if ($stmt === false) {
+        echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+        return;
+    }
+    $stmt->bind_param('s', $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result === false) {
+        echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+        return;
+    }
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        if (password_verify($password, $user['password'])) {
+            session_start();
+            $_SESSION['client_username'] = $username;
+            $_SESSION['role'] = 'user';
+            $_SESSION['id'] = $user['id'];
+
+            header("Location: ../client/Home.php");
+            exit();
+        } else {
+            echo "<p class='error'>Invalid username or password.</p>";
+        }
+    } else {
+        echo "<p class='error'>Invalid username or password.</p>";
+    }
+
+    $stmt->close();
+}
+
+function customerRegister()
+{
+    $connection = DBConnection("client");
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
+    $name = $_POST['name'];
+    $password = $_POST['password'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $address = $_POST['address'];
+    $status = $_POST['status'];
+    $password = $_POST['password'];
+
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    $query = "INSERT INTO user (name, password, email, phone, address, status) VALUES (?,?,?,?,?,?)";
+    $stmt = $connection->prepare($query);
+    if ($stmt === false) {
+        echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+        return;
+    }
+    $stmt->bind_param('ssssss', $name, $hashedPassword, $email, $phone, $address, $status);
+    $result = $stmt->execute();
+    if ($result === false) {
+        echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+    } else {
+        echo "<p class='success'>User added successfully.</p><a href='../view/client/Login.php'>Go to Login Page</a>";
+    }
+
+    $stmt->close();
+}
+
+function customerHeaderTage()
+{
+    echo '<nav>';
+    echo '<ul>';
+    echo '<li>NAVBAR</li>';
+    echo '<li><a href="../../view/client/Home.php">Home</a></li>';
+    echo '<li><a href="../../view/client/Pitch.php">Pitch</a></li>';
+    echo '<li><a href="../../view/client/Contact.php">Contact</a></li>';
+    echo '<li><a href="../../view/client/AboutUs.php">About Us</a></li>';
+    echo '</ul>';
+    echo '</nav>';
+}
+
+function customerFooterTage()
+{
+    echo '<footer>';
+    echo '<div class="footer-container">';
+    echo '<div class="footer-section contact-info">';
+    echo '<h2>Contact Us</h2>';
+    echo '<p>Email: info@example.com</p>';
+    echo '<p>Phone: +123-456-7890</p>';
+    echo '<p>Address: 123 Example Street, City, Country</p>';
+    echo '</div>';
+    echo '<div class="footer-section quick-links">';
+    echo '<h2>Quick Links</h2>';
+    echo '<ul>';
+    echo '<li><a href="#">Home</a></li>';
+    echo '<li><a href="#">Pitch</a></li>';
+    echo '<li><a href="#">Contact</a></li>';
+    echo '<li><a href="#">About Us</a></li>';
+    echo '</ul>';
+    echo '</div>';
+    echo '<div class="footer-section social-media">';
+    echo '<h2>Follow Us</h2>';
+    echo '<a href="#"><img src="" alt="Facebook"></a>';
+    echo '<a href="#"><img src="" alt="Twitter"></a>';
+    echo '<a href="#"><img src="" alt="Instagram"></a>';
+    echo '</div>';
+    echo '</div>';
+    echo '<div class="footer-bottom">';
+    echo '<p>&copy; ' . date('Y') . ' Your Company. All rights reserved.</p>';
+    echo '</div>';
+    echo '</footer>';
+}
+
+function customerDisplaySlideshow()
+{
+    echo '<!-- Slideshow container -->';
+    echo '<div class="slideshow-container">';
+
+    // Slide 1
+    echo '<div class="mySlides fade">';
+    echo '<div class="numbertext">1 / 3</div>';
+    echo '<img src="../../php/images/photo_1.jpg" style="width:100%">';
+    echo '<div class="text">Caption Text</div>';
+    echo '</div>';
+
+    // Slide 2
+    echo '<div class="mySlides fade">';
+    echo '<div class="numbertext">2 / 3</div>';
+    echo '<img src="../../php/images/photo_2.jpg" style="width:100%">';
+    echo '<div class="text">Caption Two</div>';
+    echo '</div>';
+
+    // Slide 3
+    echo '<div class="mySlides fade">';
+    echo '<div class="numbertext">3 / 3</div>';
+    echo '<img src="../../php/images/photo_3.jpg" style="width:100%">';
+    echo '<div class="text">Caption Three</div>';
+    echo '</div>';
+
+    // Next and previous buttons
+    echo '<a class="prev" onclick="plusSlides(-1)">&#10094;</a>';
+    echo '<a class="next" onclick="plusSlides(1)">&#10095;</a>';
+    echo '</div>';
+    echo '<br>';
+
+    // Dots/circles
+    echo '<div style="text-align:center">';
+    echo '<span class="dot" onclick="currentSlide(1)"></span>';
+    echo '<span class="dot" onclick="currentSlide(2)"></span>';
+    echo '<span class="dot" onclick="currentSlide(3)"></span>';
+    echo '</div>';
+}
+
+function customerDisplayVideoPlayer()
+{
+    echo '<iframe width="560" height="315" src="https://www.youtube.com/embed/Ip6cw8gfHHI?si=BXbRMY9tFASNWl8r" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+}
