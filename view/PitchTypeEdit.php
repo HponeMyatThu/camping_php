@@ -80,7 +80,7 @@ $getPitchTypeName = getEditPitchType($id)
     <div class="container">
         <h1>Register Pitch Type</h1>
         <form action="../php/_common.php" method="POST">
-            <input type="text" id="pitch_type_id" name="pitch_type_id" value="<?php echo $id ?>">
+            <input type="hidden" id="pitch_type_id" name="pitch_type_id" value="<?php echo $id ?>">
             <div class="form-group">
                 <label for="pitch_type_name">Pitch Type Name:</label>
                 <input type="text" id="pitch_type_name" name="pitch_type_name" value="<?php echo $getPitchTypeName?>" required>

@@ -14,73 +14,26 @@ if (file_exists($CommonFilePath)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Document</title>
     <style>
         body {
-            display: flex;
+            font-family: Arial, sans-serif;
             margin: 0;
-            font-family: 'Arial', sans-serif;
+            padding: 0;
             background-color: #f4f4f9;
         }
 
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            background-color: #1c1c1c;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 20px;
-            position: relative;
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar h2 {
-            margin: 0;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            color: #eaeaea;
-        }
-
-        .sidebar a {
-            width: 100%;
-            padding: 15px;
-            text-align: start;
-            margin-left: 30px;
-            text-decoration: none;
-            color: white;
-            font-size: 1.1em;
-            transition: background-color 0.3s;
-        }
-
-        .sidebar a:hover {
-            background-color: #575757;
-        }
-
-        .sidebar .logout {
-            margin-top: auto;
-            margin-bottom: 20px;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            background-color: #ffffff;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-info {
-            background-color: #f1f1f1;
-            padding: 10px 20px;
-            text-align: right;
-            border-bottom: 1px solid #ddd;
-            font-size: 0.9em;
-            color: #333;
-        }
-
-        .main-content h1 {
-            color: #333;
-            font-size: 2em;
+        h1 {
+            text-align: center;
             margin-bottom: 20px;
         }
 
@@ -90,16 +43,11 @@ if (file_exists($CommonFilePath)) {
             margin-bottom: 20px;
         }
 
-        table,
         th,
         td {
-            border: 1px solid #ddd;
-        }
-
-        th,
-        td {
-            padding: 15px;
+            padding: 12px;
             text-align: left;
+            border: 1px solid #ddd;
         }
 
         th {
@@ -114,6 +62,14 @@ if (file_exists($CommonFilePath)) {
             background-color: #f1f1f1;
         }
 
+        img {
+            max-width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            margin-bottom: 5px;
+        }
+
         .error {
             color: red;
             font-weight: bold;
@@ -122,16 +78,8 @@ if (file_exists($CommonFilePath)) {
 </head>
 
 <body>
-    <?php adminSideBar() ?>
-    <div class="main-content">
-        <div class="user-info">
-            <?php
-            showLoginUser()
-            ?>
-        </div>
-        <h1>Pitch</h1>
-        
-    </div>
+    <h1>Pitch View</h1>
+    <?php displayPitch() ?>
 </body>
 
 </html>

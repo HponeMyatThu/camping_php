@@ -16,7 +16,7 @@ function DBConnection()
     }
 }
 
-function displayPitchTypes()
+function getPitchType()
 {
     $connection = DBConnection();
 
@@ -34,6 +34,13 @@ function displayPitchTypes()
             $pitchTypes[] = $row;
         }
     }
+
+    return $pitchTypes;
+}
+
+function displayPitchTypes()
+{
+    $pitchTypes = getPitchType();
 
     if (count($pitchTypes) > 0) {
         echo "<table>";
@@ -176,7 +183,7 @@ function adminSideBar()
         <h2><a href="AdminDashboard.php">Navigation</a></h2>
         <a href="PitchView.php">Pitch</a>
         <a href="PitchTypeView.php">Pitch Type</a>
-        <a href="">Pitch Register</a>
+        <a href="PitchRegister.php">Pitch Register</a>
         <a href="PitchTypeRegister.php">Pitch Type Register</a>
         <form method="POST" style="display:inline;">
             <button type="submit" name="logout" class="logout">Logout</button>
@@ -321,3 +328,174 @@ function mainMethod()
         exit();
     }
 }
+
+function displayPitchTypeInPitchRegister()
+{
+    $pitchTypes = getPitchType();
+
+    echo "<div class=\"form-group\">" .
+        "<label for=\"pitch_type_id\">Pitch Type:</label>" .
+        "<select id=\"pitch_type_id\" name=\"pitch_type_id\" required style=\"color: black;\">";
+
+    echo "<option value=\"\">Select Pitch Type</option>";
+
+    foreach ($pitchTypes as $pitchType) {
+        echo "<option value=\"" . $pitchType['id'] . "\">" . $pitchType['pitch_type_name'] . "</option>";
+    }
+
+    echo "</select></div>";
+}
+
+function generateUniqueFileName($uploadDirectory, $extension)
+{
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < 10; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    do {
+        $uniqueName = uniqid(rand(), true) . $randomString . '.' . $extension;
+        $targetFile = $uploadDirectory . $uniqueName;
+    } while (file_exists($targetFile));
+
+    return $targetFile;
+}
+
+function registerPitch()
+{
+    $pitch_name = $_POST['pitch_name'];
+    $map = $_POST['map'];
+    $address = $_POST['address'];
+    $fees = $_POST['fees'];
+    $localAttraction = $_POST['localAttraction'];
+    $pitch_type_id = $_POST['pitch_type_id'];
+    $uploadDirectory = "../uploads/";
+
+    $photo1_upload = uploadFile('photo1', $uploadDirectory);
+    $photo2_upload = uploadFile('photo2', $uploadDirectory);
+    $photo3_upload = uploadFile('photo3', $uploadDirectory);
+
+    if ($photo1_upload['status'] && $photo2_upload['status'] && $photo3_upload['status']) {
+        $photo1_path = $photo1_upload['path'];
+        $photo2_path = $photo2_upload['path'];
+        $photo3_path = $photo3_upload['path'];
+
+        $connection = DBConnection();
+        if ($connection === null) {
+            echo "<p class='error'>Error: Database connection could not be established.</p>";
+            return;
+        }
+
+        $sql = "INSERT INTO pitch (pitch_name, map, address, photo1, photo2, photo3, fees, localAttraction, pitch_type_id)
+        VALUES ('$pitch_name', '$map', '$address', '$photo1_path', '$photo2_path', '$photo3_path', $fees, '$localAttraction', $pitch_type_id)";
+
+        if ($connection->query($sql) === TRUE) {
+            header("location: ../view/PitchView.php");
+        } else {
+            echo "Error: " . $sql . "<br>" . $connection->error;
+        }
+    } else {
+        echo "<p class='error'>Failed to add Pitch.</p>";
+        echo "<a href='../view/PitchRegister.php'>Go back to Pitch Register</a>";
+        return;
+    }
+}
+
+function uploadFile($fileInput, $uploadDirectory)
+{
+    if (!is_dir($uploadDirectory)) {
+        if (!mkdir($uploadDirectory, 0777, true)) {
+            return ["status" => false, "message" => "Failed to create upload directory."];
+        }
+    }
+
+    $imageFileType = strtolower(pathinfo($_FILES[$fileInput]["name"], PATHINFO_EXTENSION));
+    $targetFile = generateUniqueFileName($uploadDirectory, $imageFileType);
+
+    $check = getimagesize($_FILES[$fileInput]["tmp_name"]);
+    if ($check === false) {
+        return ["status" => false, "message" => "File is not an image."];
+    }
+
+    if ($_FILES[$fileInput]["size"] > 5000000) {
+        return ["status" => false, "message" => "Sorry, your file is too large."];
+    }
+
+    if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
+        return ["status" => false, "message" => "Sorry, only JPG, JPEG, PNG & GIF files are allowed."];
+    }
+
+    if (move_uploaded_file($_FILES[$fileInput]["tmp_name"], $targetFile)) {
+        return ["status" => true, "path" => $targetFile];
+    } else {
+        return ["status" => false, "message" => "Sorry, there was an error uploading your file."];
+    }
+}
+
+function displayPitch()
+{
+    $connection = DBConnection();
+
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
+    $query = "SELECT * FROM pitch";
+    $stmt = $connection->prepare($query);
+
+    if ($stmt === false) {
+        echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+        return;
+    }
+
+    if (!$stmt->execute()) {
+        echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+        return;
+    }
+
+    $result = $stmt->get_result();
+    $pitchData = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $pitchData[] = $row;
+    }
+
+    $pitchDataJSON = json_encode($pitchData);
+    echo "<script>console.log('Pitch Data:', $pitchDataJSON);</script>";
+
+    if (count($pitchData) > 0) {
+        echo "<table>";
+        echo "<tr><th>ID</th><th>Pitch Name</th><th>Map</th><th>Address</th><th>Photo 1</th><th>Photo 2</th><th>Photo 3</th><th>Fees</th><th>Local Attraction</th><th>Pitch Type</th><th>Edit</th><th>Delete</th></tr>";
+        foreach ($pitchData as $pitch) {
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($pitch['id']) . "</td>";
+            echo "<td>" . htmlspecialchars($pitch['pitch_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($pitch['map']) . "</td>";
+            echo "<td>" . htmlspecialchars($pitch['address']) . "</td>";
+            echo "<td><img src='" . htmlspecialchars($pitch['photo1']) . "' alt='Photo 1'></td>";
+            echo "<td><img src='" . htmlspecialchars($pitch['photo2']) . "' alt='Photo 2'></td>";
+            echo "<td><img src='" . htmlspecialchars($pitch['photo3']) . "' alt='Photo 3'></td>";
+            echo "<td>" . htmlspecialchars($pitch['fees']) . "</td>";
+            echo "<td>" . htmlspecialchars($pitch['localAttraction']) . "</td>";
+            echo "<td>" . htmlspecialchars($pitch['pitch_type_id']) . "</td>";
+            echo "<td><form method='POST' style='display:inline;'>" .
+                "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
+                "<button type='submit' name='PitchEdit' class='PitchEdit'>Edit</button>" .
+                "</form></td>";
+            echo "<td><form method='POST' style='display:inline;'>" .
+                "<input type='hidden' name='id' value='" . htmlspecialchars($pitch['id']) . "'>" .
+                "<button type='submit' name='PitchDelete' class='PitchDelete'>Delete</button>" .
+                "</form></td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+    } else {
+        echo "<p>No pitches found.</p>";
+    }
+
+    $stmt->close();
+    $connection->close();
+}
+

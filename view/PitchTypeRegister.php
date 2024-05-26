@@ -76,6 +76,7 @@ registerPitchType()
 </head>
 
 <body>
+    <?php adminSideBar() ?>
     <div class="container">
         <h1>Register Pitch Type</h1>
         <form action="PitchTypeRegister.php" method="POST">
