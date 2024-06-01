@@ -1,4 +1,5 @@
 <?php
+session_start();
 function DBConnection($parameter)
 {
     if ($parameter === "client") {
@@ -170,7 +171,7 @@ if (isset($_POST['postEditPitchType'])) {
 
 function showLoginUser($parameter)
 {
-    session_start();
+
     if (isset($_SESSION['id'])) {
         if ($parameter === "admin" && isset($_SESSION['admin_username'])) {
             $id = $_SESSION['id'];
@@ -208,7 +209,6 @@ function adminSideBar()
 }
 
 if (isset($_POST['logout'])) {
-    session_start();
     session_destroy();
     header("Location: ../view/AdminLogin.php");
     exit();
@@ -318,7 +318,6 @@ function loginAdmin()
             $user = $result->fetch_assoc();
 
             if (password_verify($password, $user['password'])) {
-                session_start();
                 $_SESSION['admin_username'] = $username;
                 $_SESSION['role'] = 'admin';
                 $_SESSION['id'] = $user['id'];
@@ -338,7 +337,6 @@ function loginAdmin()
 
 function adminMainMethod()
 {
-    session_start();
     if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
         header("Location: ./view/AdminLogin.php");
         exit();
@@ -505,6 +503,8 @@ function displayPitch($parameter)
         echo "<tr><th>ID</th><th>Pitch Name</th><th>Map</th><th>Address</th><th>Photo 1</th><th>Photo 2</th><th>Photo 3</th><th>Fees</th><th>Local Attraction</th><th>Pitch Type</th>";
         if ($_SESSION['role'] === 'admin') {
             echo "<th>Edit</th><th>Delete</th>";
+        } else {
+            echo "";
         }
         echo "</tr>";
         foreach ($pitchData as $pitch) {
@@ -585,7 +585,6 @@ if (isset($_POST['PitchDelete'])) {
 
 function customerMainMethod()
 {
-    session_start();
     if (!isset($_SESSION['username']) || !isset($_SESSION['id'])) {
         header("Location: ./view/client/Login.php");
         exit();
@@ -627,7 +626,6 @@ function customerLogin()
         $user = $result->fetch_assoc();
 
         if (password_verify($password, $user['password'])) {
-            session_start();
             $_SESSION['client_username'] = $username;
             $_SESSION['role'] = 'user';
             $_SESSION['id'] = $user['id'];
@@ -768,4 +766,43 @@ function customerDisplaySlideshow()
 function customerDisplayVideoPlayer()
 {
     echo '<iframe width="560" height="315" src="https://www.youtube.com/embed/Ip6cw8gfHHI?si=BXbRMY9tFASNWl8r" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+}
+
+function search($role, $table, $searchRow)
+{
+    if (isset($_POST['PitchSearch'])) {
+        $searchKeyword = $_POST['searchKeyword'];    
+        $_SESSION['searchKeyword'] = $searchKeyword;
+        $connection = DBConnection($role);
+        if ($connection === null) {
+            echo "<p class='error'>Error: Database connection could not be established.</p>";
+            return [];
+        }
+
+        $query = "SELECT * FROM $table WHERE $searchRow LIKE ? ORDER BY id DESC";
+        $stmt = $connection->prepare($query);
+        if ($stmt === false) {
+            echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+            return [];
+        }
+
+        $searchParam = "%$searchKeyword%";
+        $stmt->bind_param('s', $searchParam);
+        $result = $stmt->execute();
+        if ($result === false) {
+            echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+            return [];
+        }
+
+        $result = $stmt->get_result();
+        if ($result === false) {
+            echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+            return [];
+        }
+
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $data;
+    }
+    return [];
 }

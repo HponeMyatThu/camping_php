@@ -7,6 +7,8 @@ if (file_exists($CommonFilePath)) {
     echo "<p class='error'>Error: Unable to include file <strong>$CommonFilePath</strong> - File does not exist.</p>";
     return;
 }
+
+$searchKeyword = ""
 ?>
 
 <!DOCTYPE html>
@@ -172,13 +174,74 @@ if (file_exists($CommonFilePath)) {
 
 <body>
     <?php customerHeaderTage() ?>
+    <form method="post">
+        <input type="text" name="searchKeyword" id="searchKeyword" value="<?php echo isset($_POST['searchKeyword']) ? htmlspecialchars($_POST['searchKeyword']) : ''; ?>">
+
+        <button type="submit" name="PitchSearch" id="PitchSearch">search</button>
+    </form>
+
+
+    <?php $returnSearch = search("client", "pitch", "pitch_name"); ?>
     <h1>Pitch Page</h1>
     <?php showLoginUser("user") ?>
     <br><br>
-    <?php displayPitch("client")?>
-    
+
+
+    <?php
+    if (empty($_SESSION['searchKeyword'])) {
+        displayPitch("client");
+    } else {
+        $connection = DBConnection("client");
+        if ($connection === null) {
+            echo "<p class='error'>Error: Database connection could not be established.</p>";
+            return;
+        }
+
+        $query = "SELECT * FROM pitch";
+        $stmt = $connection->prepare($query);
+
+        if ($stmt === false) {
+            echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+            return;
+        }
+
+        if (!$stmt->execute()) {
+            echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+            return;
+        }
+
+        $result = $stmt->get_result();
+        $pitchData = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $pitchData[] = $row;
+        }
+
+        $stmt->close();
+        $connection->close();
+        if (count($returnSearch) > 0) {
+            echo "<table>";
+            echo "<tr><th>ID</th><th>Pitch Name</th><th>Map</th><th>Address</th><th>Photo 1</th><th>Photo 2</th><th>Photo 3</th><th>Fees</th><th>Local Attraction</th><th>Pitch Type</th>";
+            foreach ($returnSearch as $pitch) {
+                echo "<tr>";
+                echo "<td>" . htmlspecialchars($pitch['id']) . "</td>";
+                echo "<td> <a href=\"\"> " . htmlspecialchars($pitch['pitch_name']) . "</a> </td>";
+                echo "<td>" . htmlspecialchars($pitch['map']) . "</td>";
+                echo "<td>" . htmlspecialchars($pitch['address']) . "</td>";
+                echo "<td><img src='" . "../" . htmlspecialchars($pitch['photo1']) . "' alt='Photo 1'></td>";
+                echo "<td><img src='" . "../" . htmlspecialchars($pitch['photo2']) . "' alt='Photo 2'></td>";
+                echo "<td><img src='" . "../" . htmlspecialchars($pitch['photo3']) . "' alt='Photo 3'></td>";
+                echo "<td>" . htmlspecialchars($pitch['fees']) . "</td>";
+                echo "<td>" . htmlspecialchars($pitch['localAttraction']) . "</td>";
+                echo "<td>" . getPitchTypeById($pitch['pitch_type_id'], "client") . "</td>";
+            }
+        } else {
+            echo '<p>No Pitch</p>';
+            return;
+        }
+    }
+    ?>
+
 </body>
-<hr>
-<?php customerFooterTage() ?>
 
 </html>
