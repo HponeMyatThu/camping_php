@@ -508,9 +508,10 @@ function displayPitch($parameter)
         }
         echo "</tr>";
         foreach ($pitchData as $pitch) {
+            $id = $pitch['id'];
             echo "<tr>";
             echo "<td>" . htmlspecialchars($pitch['id']) . "</td>";
-            echo "<td>" . htmlspecialchars($pitch['pitch_name']) . "</td>";
+            echo "<td><a href=\"pitchDetail.php?id=$id\">" . htmlspecialchars($pitch['pitch_name']) . "</a></td>";
             echo "<td>" . htmlspecialchars($pitch['map']) . "</td>";
             echo "<td>" . htmlspecialchars($pitch['address']) . "</td>";
             echo "<td><img src='" . ($parameter === "client" ? "../" : "") . htmlspecialchars($pitch['photo1']) . "' alt='Photo 1'></td>";
@@ -581,6 +582,11 @@ if (isset($_POST['PitchDelete'])) {
         $stmt->close();
         $connection->close();
     }
+}
+
+if (isset($_POST['PitchDetailBackButton'])) {
+    header("location: Pitch.php");
+    exit();
 }
 
 function customerMainMethod()
@@ -771,7 +777,7 @@ function customerDisplayVideoPlayer()
 function search($role, $table, $searchRow)
 {
     if (isset($_POST['PitchSearch'])) {
-        $searchKeyword = $_POST['searchKeyword'];    
+        $searchKeyword = $_POST['searchKeyword'];
         $_SESSION['searchKeyword'] = $searchKeyword;
         $connection = DBConnection($role);
         if ($connection === null) {
@@ -805,4 +811,107 @@ function search($role, $table, $searchRow)
         return $data;
     }
     return [];
+}
+
+function pitchDetail($id)
+{
+    $connection = DBConnection("client");
+    if ($connection === null) {
+        echo "<p class='error'>Error: Database connection could not be established.</p>";
+        return;
+    }
+
+    $query = "SELECT * FROM pitch WHERE id = ?";
+    $stmt = $connection->prepare($query);
+    if ($stmt === false) {
+        echo "<p class='error'>Error preparing statement: " . $connection->error . "</p>";
+        return;
+    }
+
+    $stmt->bind_param('i', $id);
+    $result = $stmt->execute();
+    if ($result === false) {
+        echo "<p class='error'>Error executing statement: " . $stmt->error . "</p>";
+        return;
+    }
+
+    $result = $stmt->get_result();
+    if ($result === false) {
+        echo "<p class='error'>Error getting result: " . $stmt->error . "</p>";
+        return;
+    }
+
+    $data = $result->fetch_assoc();
+    $JSONData = json_encode($data);
+    echo "<script>console.log($JSONData);</script>";
+    $stmt->close();
+
+    if ($data) {
+        echo "<div class='pitch-detail'>";
+        echo "<h2>Pitch Details</h2>";
+        echo " <form method=\"POST\">" .
+            "<button id=\"PitchDetailBackButton\" name=\"PitchDetailBackButton\">←</button>" .
+            " </form>";
+        echo "<p><strong>ID:</strong> " . htmlspecialchars($data['id'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Pitch Name:</strong> " . htmlspecialchars($data['pitch_name'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Pitch Type ID:</strong> " . htmlspecialchars($data['pitch_type_id'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Address:</strong> " . htmlspecialchars($data['address'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Fees:</strong> " . htmlspecialchars($data['fees'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Local Attraction:</strong> " . htmlspecialchars($data['localAttraction'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<p><strong>Map:</strong> " . htmlspecialchars($data['map'], ENT_QUOTES, 'UTF-8') . "</p>";
+        echo "<div><strong>Photos:</strong>";
+        echo "<img src='" . '../' . htmlspecialchars($data['photo1'], ENT_QUOTES, 'UTF-8') . "' alt='Photo 1' style='width:100px; height:auto;'/>";
+        echo "<img src='" . '../' . htmlspecialchars($data['photo2'], ENT_QUOTES, 'UTF-8') . "' alt='Photo 2' style='width:100px; height:auto;'/>";
+        echo "<img src='" . '../' . htmlspecialchars($data['photo3'], ENT_QUOTES, 'UTF-8') . "' alt='Photo 3' style='width:100px; height:auto;'/>";
+        echo "<form action=\"POST\">" .
+            "<button id=\"PitchDetailBookingButton\" name=\"PitchDetailBookingButton\">Booking</button>" .
+            "</form>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<p class='error'>No data found for the given ID.</p>";
+    }
+}
+
+function pitchDetail1($id)
+{
+    $connection = DBConnection("client");
+    if ($connection === null) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Database connection could not be established.']);
+        return;
+    }
+
+    $query = "SELECT * FROM pitch WHERE id = ?";
+    $stmt = $connection->prepare($query);
+    if ($stmt === false) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error preparing statement: ' . $connection->error]);
+        return;
+    }
+
+    $stmt->bind_param('i', $id);
+    $result = $stmt->execute();
+    if ($result === false) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error executing statement: ' . $stmt->error]);
+        return;
+    }
+
+    $result = $stmt->get_result();
+    if ($result === false) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error getting result: ' . $stmt->error]);
+        return;
+    }
+
+    $data = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($data) {
+        echo json_encode($data);
+    } else {
+        http_response_code(404);
+        echo json_encode(['error' => 'No data found for the given ID.']);
+    }
 }
